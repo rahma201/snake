@@ -1,8 +1,17 @@
-# استخدم Nginx لخدمة الملفات الثابتة
-FROM nginx:alpine
+# Base image
+FROM python:3.12-slim
 
-# نسخ اللعبة إلى مسار Nginx
-COPY . /usr/share/nginx/html
+# Set working directory
+WORKDIR /app
 
-# Nginx بشكل افتراضي يخدم على port 80
+# Copy game files
+COPY . /app
+
+# Install dependencies
+RUN pip install --no-cache-dir flask
+
+# Expose port 80 inside the container
 EXPOSE 80
+
+# Start Flask server serving index.html
+CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=80"]
