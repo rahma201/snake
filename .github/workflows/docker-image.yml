@@ -43,9 +43,26 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "Stopping old Snake container if running..."
-            docker rm -f snakegame || true
-            echo "Pulling latest image..."
-            docker pull ${{ env.IMAGE_NAME }}:${{ env.TAG }}
-            echo "Starting new Snake container..."
-            docker run -d -p 8080:80 --name snakegame ${{ env.IMAGE_NAME }}:${{ env.TAG }}
+            #!/bin/bash
+
+            IMAGE_NAME=${{ env.IMAGE_NAME }}:${{ env.TAG }}
+            CONTAINER_NAME="snakegame"
+
+            # قائمة البورتات الممكنة
+            PORTS=(8080 8090 8100 8110 8120)
+
+            # البحث عن أول بورت فارغ
+            for PORT in "${PORTS[@]}"; do
+                if ! lsof -i :$PORT >/dev/null; then
+                    echo "Using port $PORT"
+                    break
+                fi
+            done
+
+            # حذف الحاوية القديمة إذا موجودة
+            docker rm -f $CONTAINER_NAME 2>/dev/null || true
+
+            # تشغيل الحاوية على البورت الفارغ
+            docker run -d -p $PORT:80 --name $CONTAINER_NAME $IMAGE_NAME
+
+            echo "Snake game is running on port $PORT"
