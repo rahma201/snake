@@ -20,7 +20,7 @@ jobs:
       - name: Package static files
         run: |
           mkdir -p artifacts
-          tar -czf artifacts/snake.tgz -C . .
+          tar -czf artifacts/snake.tgz -C snakegame .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -45,8 +45,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./snakegame
+          file: ./snakegame/Dockerfile
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
