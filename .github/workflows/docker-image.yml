@@ -1,4 +1,4 @@
-name: Deploy Django & Snake CI/CD
+name: Snake Game CI/CD
 
 on:
   push:
@@ -6,50 +6,15 @@ on:
       - main
 
 env:
-  DJANGO_IMAGE: rahmashelbayeh/djangoapp
-  SNAKE_IMAGE: rahmashelbayeh/snakegame
+  IMAGE_NAME: rahmashelbayeh/snakegame
   TAG: ${{ github.run_id }}
 
 jobs:
-  build_and_package:
-    name: Build and Package Apps
+  docker_build:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Python & build tools
-        run: |
-          sudo apt update
-          sudo apt install -y python3 python3-venv python3-pip build-essential
-
-      - name: Install Django dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -r book-shop/requirements.txt
-
-      - name: Package Django
-        run: |
-          mkdir -p artifacts
-          tar -czf artifacts/django-app.tgz -C . book-shop
-
-      - name: Package Snake
-        run: |
-          mkdir -p artifacts
-          tar -czf artifacts/snake-app.tgz -C . snake
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-packages
-          path: artifacts/
-
-  docker_build_and_push:
-    name: Build & Push Docker Images
-    needs: build_and_package
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Log in to Docker Hub
@@ -58,44 +23,29 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build & Push Django
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./book-shop
-          file: ./book-shop/Dockerfile
+          context: ./snakegame
+          file: ./snakegame/Dockerfile
           push: true
-          tags: ${{ env.DJANGO_IMAGE }}:${{ env.TAG }}
-
-      - name: Build & Push Snake
-        uses: docker/build-push-action@v5
-        with:
-          context: ./snake
-          file: ./snake/Dockerfile
-          push: true
-          tags: ${{ env.SNAKE_IMAGE }}:${{ env.TAG }}
+          tags: ${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
   deploy:
-    name: Deploy Apps on Blue VM
-    needs: docker_build_and_push
+    name: Deploy on Server
+    needs: docker_build
     runs-on: ubuntu-latest
     steps:
-      - name: SSH and deploy containers
+      - name: SSH into Server and deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # --- Stop old containers if exist ---
-            docker rm -f djangoapp || true
+            echo "Stopping old Snake container if running..."
             docker rm -f snakegame || true
-
-            # --- Pull latest images ---
-            docker pull ${{ env.DJANGO_IMAGE }}:${{ env.TAG }}
-            docker pull ${{ env.SNAKE_IMAGE }}:${{ env.TAG }}
-
-            # --- Run Django on port 80 ---
-            docker run -d -p 80:8000 --name djangoapp ${{ env.DJANGO_IMAGE }}:${{ env.TAG }}
-
-            # --- Run Snake on port 8080 ---
-            docker run -d -p 8080:80 --name snakegame ${{ env.SNAKE_IMAGE }}:${{ env.TAG }}
+            echo "Pulling latest image..."
+            docker pull ${{ env.IMAGE_NAME }}:${{ env.TAG }}
+            echo "Starting new Snake container..."
+            docker run -d -p 8080:80 --name snakegame ${{ env.IMAGE_NAME }}:${{ env.TAG }}
