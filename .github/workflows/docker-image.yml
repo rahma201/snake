@@ -67,4 +67,5 @@ jobs:
             echo "Pulling latest image..."
             docker pull ${{ env.IMAGE_NAME }}:${{ env.TAG }}
             echo "Starting new Snake container..."
-            docker run -d -p 80:80 --name snakegame ${{ env.IMAGE_NAME }}:${{ env.TAG }}
+            docker run -d -p 8080:80 --name snakegame ${{ env.IMAGE_NAME }}:${{ env.TAG }}
+
