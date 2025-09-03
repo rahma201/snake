@@ -51,7 +51,7 @@ jobs:
             # حذف الحاوية القديمة إذا موجودة
             docker rm -f $CONTAINER_NAME 2>/dev/null || true
 
-            # تشغيل الحاوية على البورت 80 → 8000
-            docker run -d -p 80:8000 --name $CONTAINER_NAME $IMAGE_NAME
+            # تشغيل الحاوية على البورت 80 → 80
+            docker run -d -p 80:80 --name $CONTAINER_NAME $IMAGE_NAME
 
             echo "Snake game is running on port 80"
