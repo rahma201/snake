@@ -1,17 +1,14 @@
-# Base image
-FROM python:3.12-slim
+# استخدم صورة Nginx خفيفة
+FROM nginx:alpine
 
-# Set working directory
-WORKDIR /app
+# احذف default page
+RUN rm /usr/share/nginx/html/*
 
-# Copy game files
-COPY . /app
+# انسخ ملفات اللعبة إلى مجلد Nginx
+COPY . /usr/share/nginx/html
 
-# Install dependencies
-RUN pip install --no-cache-dir flask
-
-# Expose port 80 inside the container
+# افتح البورت 80
 EXPOSE 80
 
-# Start Flask server serving index.html
-CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=80"]
+# شغل Nginx في foreground
+CMD ["nginx", "-g", "daemon off;"]
