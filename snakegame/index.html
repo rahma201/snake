@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -82,38 +82,32 @@
   <body>
     <canvas id="game"></canvas>
     <div class="hud" id="hud">
-      النتيجة: <span id="score">0</span> · أعلى نتيجة: <span id="best">0</span>
+      Score: <span id="score">0</span> · Best: <span id="best">0</span>
     </div>
     <div class="overlay" id="start">
       <div class="panel">
-        <h1>لعبة الحية – Snake</h1>
-        <p>⬆️ ⬇️ ⬅️ ➡️ أو WASD للتحكم</p>
-        <p>تدخل من الجدار وتخرج من الجهة المقابلة · كل تفاحة = <b>5</b> نقاط</p>
-        <p class="small">الخلفية تتغير كل 10 نقاط · يوجد صوت</p>
-        <div class="btn" id="startBtn">ابدأ اللعب</div>
-        <p class="small">أو اضغط Space / Enter</p>
+        <h1>Snake Game</h1>
+        <p>⬆️ ⬇️ ⬅️ ➡️ or WASD to control</p>
+        <p>Collide with the wall and appear on the opposite side · Each apple = <b>5</b> points</p>
+        <p class="small">Background changes every 10 points · Sound effects included</p>
+        <div class="btn" id="startBtn">Start Game</div>
+        <p class="small">Or press Space / Enter</p>
       </div>
     </div>
     <div class="overlay" id="gameover" style="display: none">
       <div class="panel">
-        <h1>انتهت اللعبة</h1>
-        <p>نتيجتك: <span id="finalScore">0</span></p>
-        <div class="btn" id="retryBtn">محاولة أخرى</div>
-        <p class="small">Space / Enter لإعادة اللعب</p>
+        <h1>Game Over</h1>
+        <p>Your Score: <span id="finalScore">0</span></p>
+        <div class="btn" id="retryBtn">Try Again</div>
+        <p class="small">Space / Enter to play again</p>
       </div>
     </div>
 
     <script>
       (() => {
         // ====== Helpers: Audio (Web Audio API) ======
-        const audioCtx = new (window.AudioContext ||
-          window.webkitAudioContext)();
-        function beep({
-          freq = 440,
-          duration = 100,
-          type = "sine",
-          vol = 0.2,
-        }) {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function beep({ freq = 440, duration = 100, type = "sine", vol = 0.2 }) {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = type;
@@ -122,10 +116,7 @@
           osc.connect(gain).connect(audioCtx.destination);
           osc.start();
           setTimeout(() => {
-            gain.gain.exponentialRampToValueAtTime(
-              0.0001,
-              audioCtx.currentTime + 0.05
-            );
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
             osc.stop(audioCtx.currentTime + 0.05);
           }, duration);
         }
@@ -146,8 +137,7 @@
         const ctx = canvas.getContext("2d");
         let dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
         const CELL = 24; // grid cell in CSS pixels
-        let cols = 0,
-          rows = 0; // grid size
+        let cols = 0, rows = 0; // grid size
 
         function resize() {
           // Fit canvas to viewport with DPR for crisp rendering
@@ -178,18 +168,13 @@
 
         const startOverlay = document.getElementById("start");
         const gameoverOverlay = document.getElementById("gameover");
-        document
-          .getElementById("startBtn")
-          .addEventListener("click", startGame);
-        document
-          .getElementById("retryBtn")
-          .addEventListener("click", startGame);
+        document.getElementById("startBtn").addEventListener("click", startGame);
+        document.getElementById("retryBtn").addEventListener("click", startGame);
 
         let state = "start"; // 'start' | 'playing' | 'gameover'
         let snake, dir, nextDir, food, score, stepMs, acc, wrapWalls;
 
         function resetGame(keepOverlay = false) {
-          // Snake starts centered with 3 segments
           const startX = Math.floor(cols / 2);
           const startY = Math.floor(rows / 2);
           snake = [
@@ -214,7 +199,6 @@
         }
 
         function startGame() {
-          // resume audio context (required by browsers on user gesture)
           if (audioCtx.state === "suspended") audioCtx.resume();
           resetGame();
         }
@@ -254,7 +238,6 @@
             const k = e.key;
             if (KEYS[k]) {
               const nd = KEYS[k];
-              // prevent reversing into itself
               if (nd.x !== -dir.x || nd.y !== -dir.y) {
                 nextDir = nd;
               }
@@ -278,7 +261,7 @@
         // ====== Drawing ======
         function drawCell(x, y, fill) {
           ctx.fillStyle = fill;
-          ctx.fillRect(x * CELL, y * CELL, CELL - 1, CELL - 1); // -1 for grid gap
+          ctx.fillRect(x * CELL, y * CELL, CELL - 1, CELL - 1);
         }
         function clear() {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -286,7 +269,6 @@
 
         function draw() {
           clear();
-          // optional faint grid
           ctx.globalAlpha = 0.06;
           ctx.strokeStyle = "#ffffff";
           for (let i = 0; i <= cols; i++) {
@@ -303,10 +285,8 @@
           }
           ctx.globalAlpha = 1;
 
-          // food
           drawCell(food.x, food.y, "#e11d48");
 
-          // snake
           for (let i = snake.length - 1; i >= 0; i--) {
             const c = snake[i];
             const isHead = i === 0;
@@ -324,7 +304,7 @@
           "linear-gradient(135deg, #14b8a6, #06121a 70%)",
         ];
         function updateBackground() {
-          const idx = Math.floor(score / 10) % BGs.length; // change every 10 points
+          const idx = Math.floor(score / 10) % BGs.length;
           document.body.style.background = BGs[idx];
         }
 
@@ -347,11 +327,9 @@
 
         function step() {
           dir = nextDir;
-          // compute next head
           let nx = snake[0].x + dir.x;
           let ny = snake[0].y + dir.y;
 
-          // wrap walls
           if (wrapWalls) {
             if (nx < 0) nx = cols - 1;
             else if (nx >= cols) nx = 0;
@@ -359,37 +337,30 @@
             else if (ny >= rows) ny = 0;
           }
 
-          // self collision? (if not wrapping, also wall collision)
           if (!wrapWalls && (nx < 0 || nx >= cols || ny < 0 || ny >= rows)) {
             return gameOver();
           }
 
-          // check collision with body (exclude last tail cell if moving forward without growing)
           for (let i = 0; i < snake.length; i++) {
             if (snake[i].x === nx && snake[i].y === ny) {
               return gameOver();
             }
           }
 
-          // move: add head
           snake.unshift({ x: nx, y: ny });
 
-          // eat?
           if (nx === food.x && ny === food.y) {
-            score += 5; // each apple is 5 points
+            score += 5;
             HUD.scoreEl.textContent = score;
             updateBackground();
             sfx.eat();
             placeFood();
-            // optionally increase speed a tiny bit
             stepMs = Math.max(70, stepMs - 1.2);
           } else {
-            // remove tail
             snake.pop();
           }
         }
 
-        // Show start overlay initially
         function showStart() {
           state = "start";
           startOverlay.style.display = "grid";
