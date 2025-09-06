@@ -88,8 +88,13 @@
       <div class="panel">
         <h1>Snake Game</h1>
         <p>⬆️ ⬇️ ⬅️ ➡️ or WASD to control</p>
-        <p>Collide with the wall and appear on the opposite side · Each apple = <b>5</b> points</p>
-        <p class="small">Background changes every 10 points · Sound effects included</p>
+        <p>
+          Collide with the wall and appear on the opposite side · Each apple =
+          <b>5</b> points
+        </p>
+        <p class="small">
+          Background changes every 10 points · Sound effects included
+        </p>
         <div class="btn" id="startBtn">Start Game</div>
         <p class="small">Or press Space / Enter</p>
       </div>
@@ -103,11 +108,22 @@
       </div>
     </div>
 
+    <audio id="background-music" loop>
+      <source src="path/to/your/music.mp3" type="audio/mp3" />
+      <source src="path/to/your/music.ogg" type="audio/ogg" />
+    </audio>
+
     <script>
       (() => {
         // ====== Helpers: Audio (Web Audio API) ======
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function beep({ freq = 440, duration = 100, type = "sine", vol = 0.2 }) {
+        const audioCtx = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        function beep({
+          freq = 440,
+          duration = 100,
+          type = "sine",
+          vol = 0.2,
+        }) {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = type;
@@ -116,7 +132,10 @@
           osc.connect(gain).connect(audioCtx.destination);
           osc.start();
           setTimeout(() => {
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(
+              0.0001,
+              audioCtx.currentTime + 0.05
+            );
             osc.stop(audioCtx.currentTime + 0.05);
           }, duration);
         }
@@ -137,10 +156,10 @@
         const ctx = canvas.getContext("2d");
         let dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
         const CELL = 24; // grid cell in CSS pixels
-        let cols = 0, rows = 0; // grid size
+        let cols = 0,
+          rows = 0; // grid size
 
         function resize() {
-          // Fit canvas to viewport with DPR for crisp rendering
           const vw = Math.floor(window.innerWidth);
           const vh = Math.floor(window.innerHeight);
           canvas.style.width = vw + "px";
@@ -168,11 +187,17 @@
 
         const startOverlay = document.getElementById("start");
         const gameoverOverlay = document.getElementById("gameover");
-        document.getElementById("startBtn").addEventListener("click", startGame);
-        document.getElementById("retryBtn").addEventListener("click", startGame);
+        document
+          .getElementById("startBtn")
+          .addEventListener("click", startGame);
+        document
+          .getElementById("retryBtn")
+          .addEventListener("click", startGame);
 
         let state = "start"; // 'start' | 'playing' | 'gameover'
         let snake, dir, nextDir, food, score, stepMs, acc, wrapWalls;
+
+        const music = document.getElementById("background-music");
 
         function resetGame(keepOverlay = false) {
           const startX = Math.floor(cols / 2);
@@ -195,6 +220,7 @@
             state = "playing";
             startOverlay.style.display = "none";
             gameoverOverlay.style.display = "none";
+            music.play(); // Start music when the game begins
           }
         }
 
@@ -211,6 +237,7 @@
           HUD.bestEl.textContent = best;
           HUD.finalEl.textContent = score;
           gameoverOverlay.style.display = "grid";
+          music.pause(); // Stop music when game ends
         }
 
         // ====== Input ======
